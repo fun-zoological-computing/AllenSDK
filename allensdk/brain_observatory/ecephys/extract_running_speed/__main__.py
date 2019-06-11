@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from allensdk.brain_observatory.ecephys.file_io.ecephys_sync_dataset import EcephysSyncDataset
+from allensdk.brain_observatory.ecephys.file_io.ecephys_sync_dataset import EcephysSyncDataset, FRAME_KEYS
 
 from allensdk.brain_observatory.argschema_utilities import ArgSchemaParserPlus
 from allensdk.brain_observatory.ecephys.file_io.stim_file import CamStimOnePickleStimFile
@@ -16,7 +16,7 @@ def extract_running_speeds(args):
     radian_angular_wheel_velocity = degrees_to_radians(stim_file.angular_wheel_velocity)
     linear_running_speed = angular_to_linear_velocity(radian_angular_wheel_velocity, args['wheel_radius'])
 
-    frame_times = sync_dataset.extract_frame_times(strategy=args['frame_time_strategy'])
+    frame_times = sync_dataset.get_edges("falling", FRAME_KEYS, units='seconds')
     
     np.save(args['output_timestamps_path'], frame_times, allow_pickle=False)
     np.save(args['output_running_speeds_path'], linear_running_speed, allow_pickle=False)
