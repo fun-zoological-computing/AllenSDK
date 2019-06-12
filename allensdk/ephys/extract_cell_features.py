@@ -38,6 +38,7 @@ import logging
 import six
 from . import ephys_extractor as efex
 from . import ephys_features as ft
+logging.info("test")
 
 HERO_MIN_AMP_OFFSET = 39.0
 HERO_MAX_AMP_OFFSET = 61.0
@@ -60,7 +61,7 @@ def extract_sweep_features(data_set, sweeps_by_type):
     sweep_features = {}
 
     for stimulus_type, sweep_numbers in six.iteritems(sweeps_by_type):
-        logging.debug("%s:%s" % (stimulus_type, ','.join(map(str, sweep_numbers))))
+        #logging.debug("%s:%s" % (stimulus_type, ','.join(map(str, sweep_numbers))))
 
         if stimulus_type == "Short Square - Triple":
             tmp_ext = efex.extractor_for_nwb_sweeps(data_set, sweep_numbers)

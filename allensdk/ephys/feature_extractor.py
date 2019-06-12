@@ -517,7 +517,7 @@ class EphysFeatureExtractor( object ):
         peak_idx = spike["peak_idx"]
 
         if peak_idx >= next_idx:
-            logging.warning("next index (%d) before peak index (%d) calculating trough" % ( next_idx, peak_idx ))
+            #logging.warning("next index (%d) before peak index (%d) calculating trough" % ( next_idx, peak_idx ))
             trough_idx = next_idx
         else:
             trough_idx = np.argmin(v[peak_idx:next_idx]) + peak_idx
