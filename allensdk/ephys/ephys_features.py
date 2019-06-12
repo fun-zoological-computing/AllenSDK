@@ -553,7 +553,7 @@ def analyze_trough_details(v, t, spike_indexes, peak_indexes, clipped=None, end=
             terminated = terminated_points[0] + downstroke
             update_clipped.append(False)
         else:
-            logging.debug("Could not identify fast trough - marking spike as clipped")
+            #logging.debug("Could not identify fast trough - marking spike as clipped")
             isi_types.append(np.nan)
             fast_trough_indexes.append(np.nan)
             adp_indexes.append(np.nan)
@@ -813,13 +813,13 @@ def fit_membrane_time_constant(v, t, start, end, min_rsme=1e-4):
     try:
         popt, pcov = curve_fit(_exp_curve, t_window, v_window, p0=guess)
     except RuntimeError:
-        logging.info("Curve fit for membrane time constant failed")
+        #logging.info("Curve fit for membrane time constant failed")
         return np.nan, np.nan, np.nan
 
     pred = _exp_curve(t_window, *popt)
     rsme = np.sqrt(np.mean(pred - v_window))
     if rsme > min_rsme:
-        logging.debug("Curve fit for membrane time constant did not meet RSME standard")
+        #logging.debug("Curve fit for membrane time constant did not meet RSME standard")
         return np.nan, np.nan, np.nan
 
     return popt
