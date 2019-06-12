@@ -284,7 +284,7 @@ def check_thresholds_and_peaks(v, t, spike_indexes, peak_indexes, upstroke_index
     too_long_spikes = []
     for i, (spk, peak) in enumerate(zip(spike_indexes, peak_indexes)):
         if t[peak] - t[spk] >= max_interval:
-            logging.info("Need to recalculate threshold-peak pair that exceeds maximum allowed interval ({:f} s)".format(max_interval))
+            #logging.info("Need to recalculate threshold-peak pair that exceeds maximum allowed interval ({:f} s)".format(max_interval))
             too_long_spikes.append(i)
 
     if too_long_spikes:
@@ -313,7 +313,7 @@ def check_thresholds_and_peaks(v, t, spike_indexes, peak_indexes, upstroke_index
                     peak_indexes[i] = new_peak
                 else:
                     # Otherwise, log and get rid of the spike
-                    logging.info("Could not redetermine threshold-peak pair - dropping that pair")
+                    #logging.info("Could not redetermine threshold-peak pair - dropping that pair")
                     drop_spikes.append(i)
 #                     raise FeatureError("Could not redetermine threshold")
             else:
@@ -331,7 +331,7 @@ def check_thresholds_and_peaks(v, t, spike_indexes, peak_indexes, upstroke_index
     clipped = np.zeros_like(spike_indexes, dtype=bool)
     end_index = find_time_index(t, end)
     if len(spike_indexes) > 0 and not np.any(v[peak_indexes[-1]:end_index + 1] <= v[spike_indexes[-1]] + tol):
-        logging.debug("Failed to return to threshold voltage + tolerance (%.2f) after last spike (min %.2f) - marking last spike as clipped", v[spike_indexes[-1]] + tol, v[peak_indexes[-1]:end_index + 1].min())
+        #logging.debug("Failed to return to threshold voltage + tolerance (%.2f) after last spike (min %.2f) - marking last spike as clipped", v[spike_indexes[-1]] + tol, v[peak_indexes[-1]:end_index + 1].min())
         clipped[-1] = True
 
     return spike_indexes, peak_indexes, upstroke_indexes, clipped
