@@ -349,7 +349,7 @@ class EphysSweepFeatureExtractor:
         """
 
         if len(self._spikes_df) == 0:
-            logging.info("No spikes available for delay calculation")
+            #logging.info("No spikes available for delay calculation")
             return 0., 0.
         start = self.start
         spike_time = self._spikes_df["threshold_t"].values[0]
@@ -380,7 +380,7 @@ class EphysSweepFeatureExtractor:
             return ft.average_voltage(v, t, baseline_end_time - self.baseline_interval,
                                       baseline_end_time)
         else:
-            logging.info("Could not find sufficiently flat interval for automatic baseline voltage", RuntimeWarning)
+            #logging.info("Could not find sufficiently flat interval for automatic baseline voltage", RuntimeWarning)
             return np.nan
 
     def voltage_deflection(self, deflect_type=None):
@@ -890,12 +890,12 @@ class EphysCellFeatureExtractor:
         for s in self._features["long_squares"]["subthreshold_sweeps"]:
             s.set_stimulus_amplitude_calculator(_step_stim_amp)
 
-        logging.debug("subthresh_sweeps: %d", len(subthresh_sweeps))
+        #logging.debug("subthresh_sweeps: %d", len(subthresh_sweeps))
         calc_subthresh_sweeps = [sweep for sweep in subthresh_sweeps if
                                  sweep.sweep_feature("stim_amp") < self.SUBTHRESH_MAX_AMP and
                                  sweep.sweep_feature("stim_amp") > self._subthresh_min_amp]
 
-        logging.debug("calc_subthresh_sweeps: %d", len(calc_subthresh_sweeps))
+        #logging.debug("calc_subthresh_sweeps: %d", len(calc_subthresh_sweeps))
         calc_subthresh_ext = EphysSweepSetFeatureExtractor.from_sweeps(calc_subthresh_sweeps)
         self._subthreshold_membrane_property_ext = calc_subthresh_ext
         self._features["long_squares"]["subthreshold_membrane_property_sweeps"] = calc_subthresh_ext.sweeps()
