@@ -56,6 +56,50 @@ MEAN_FEATURES = [ "upstroke_downstroke_ratio", "peak_v", "peak_t", "trough_v", "
                   "threshold_v", "threshold_i", "threshold_t", "peak_v", "peak_t" ]
 
 
+def extract_feature_wave(wave, stimulus_type):
+    # extract sweep-level features
+    #sweep_features = {}
+
+    #for stimulus_type, sweep_numbers in six.iteritems(sweeps_by_type):
+        #logging.debug("%s:%s" % (stimulus_type, ','.join(map(str, sweep_numbers))))
+
+      if stimulus_type == "Short Square - Triple":
+          tmp_ext = efex.extractor_for_nwb_sweeps(data_set, sweep_numbers)
+          t_set = [s.t for s in tmp_ext.sweeps()]
+          v_set = [s.v for s in tmp_ext.sweeps()]
+
+          # IT-14530
+          # triple-sweeps to use different window
+          win_start = efex.SHORT_SQUARE_TRIPLE_WINDOW_START
+          win_end = efex.SHORT_SQUARE_TRIPLE_WINDOW_END
+          cutoff, thresh_frac = ft.estimate_adjusted_detection_parameters(
+                                  v_set, t_set, win_start, win_end)
+          thresh_frac = max(SHORT_SQUARE_THRESH_FRAC_FLOOR, thresh_frac)
+
+          fex = efex.extractor_for_nwb_sweeps(data_set, sweep_numbers,
+                                  dv_cutoff=cutoff, thresh_frac=thresh_frac)
+      elif stimulus_type in SHORT_SQUARE_TYPES:
+          tmp_ext = efex.extractor_for_nwb_sweeps(data_set, sweep_numbers)
+          t_set = [s.t for s in tmp_ext.sweeps()]
+          v_set = [s.v for s in tmp_ext.sweeps()]
+
+          win_start = efex.SHORT_SQUARES_WINDOW_START
+          win_end = efex.SHORT_SQUARES_WINDOW_END
+          cutoff, thresh_frac = ft.estimate_adjusted_detection_parameters(
+                                   v_set, t_set, win_start, win_end)
+          thresh_frac = max(SHORT_SQUARE_THRESH_FRAC_FLOOR, thresh_frac)
+
+          fex = efex.extractor_for_nwb_sweeps(data_set, sweep_numbers,
+                                              dv_cutoff=cutoff, thresh_frac=thresh_frac)
+      else:
+          fex = efex.extractor_for_nwb_sweeps(data_set, sweep_numbers)
+
+      fex.process_spikes()
+
+      sweep_features.update({ f.id:f.as_dict() for f in fex.sweeps() })
+
+      return sweep_features
+
 def extract_sweep_features(data_set, sweeps_by_type):
     # extract sweep-level features
     sweep_features = {}
