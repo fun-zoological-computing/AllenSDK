@@ -56,7 +56,7 @@ MEAN_FEATURES = [ "upstroke_downstroke_ratio", "peak_v", "peak_t", "trough_v", "
                   "threshold_v", "threshold_i", "threshold_t", "peak_v", "peak_t" ]
 
 
-def extract_feature_wave(wave, stimulus_type):
+def extract_feature_wave(wave, stimulus_type,data_set):
     # extract sweep-level features
     #sweep_features = {}
 
