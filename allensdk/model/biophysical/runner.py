@@ -68,8 +68,10 @@ def run(description, sweeps=None, procs=6):
 
     prepare_nwb_output(description.manifest.get_path('stimulus_path'),
                        description.manifest.get_path('output_path'))
-
-    if procs == 1:
+    # import pdb
+    # pdb.set_trace()
+        
+    if procs == True:
         run_sync(description, sweeps)
         return
 
@@ -103,15 +105,21 @@ def run_sync(description, sweeps=None):
     # configure model
     manifest = description.manifest
     morphology_path = description.manifest.get_path('MORPHOLOGY')
-    utils.generate_morphology(morphology_path.encode('ascii', 'ignore'))
-    utils.load_cell_parameters()
+    print(morphology_path)
+    
+    try:
+        utils.generate_morphology(morphology_path)
+    except:
+        utils.generate_morphology(morphology_path.encode('ascii', 'ignore'))
 
+    utils.load_cell_parameters()
     # configure stimulus and recording
     stimulus_path = description.manifest.get_path('stimulus_path')
     run_params = description.data['runs'][0]
     if sweeps is None:
         sweeps = run_params['sweeps']
-    sweeps_by_type = run_params['sweeps_by_type']
+    print(run_params.keys())    
+    # sweeps_by_type = run_params['sweeps_by_type']
 
     output_path = manifest.get_path("output_path")
 
@@ -134,7 +142,11 @@ def run_sync(description, sweeps=None):
 
         if _lock is not None:
             _lock.acquire()
-        save_nwb(output_path, recorded_data["v"], sweep, sweeps_by_type)
+        try:
+            save_nwb(output_path, recorded_data["v"], sweep, sweeps_by_type)
+        except:
+            save_nwb(output_path, recorded_data["v"], sweep)
+
         if _lock is not None:
             _lock.release()
 
@@ -162,7 +174,7 @@ def prepare_nwb_output(nwb_stimulus_path,
         data_set.set_spike_times(sweep, [])
 
 
-def save_nwb(output_path, v, sweep, sweeps_by_type):
+def save_nwb(output_path, v, sweep, sweep_by_type= None):
     '''Save a single voltage output result into an existing sweep in a NWB file.
     This is intended to overwrite a recorded trace with a simulated voltage.
 
@@ -177,10 +189,10 @@ def save_nwb(output_path, v, sweep, sweeps_by_type):
     '''
     output = NwbDataSet(output_path)
     output.set_sweep(sweep, None, v)
-
-    sweep_by_type = {t: [sweep]
+    if sweep_by_type is not None:
+        sweep_by_type = {t: [sweep]
                      for t, ss in sweeps_by_type.items() if sweep in ss}
-    sweep_features = extract_cell_features.extract_sweep_features(output,
+        sweep_features = extract_cell_features.extract_sweep_features(output,
                                                                   sweep_by_type)
     try:
         spikes = sweep_features[sweep]['spikes']
