@@ -66,8 +66,8 @@ def run(description, sweeps=None, procs=6):
         list of experiment sweep numbers to simulate.  If None, simulate all sweeps.
     '''
 
-    prepare_nwb_output(description.manifest.get_path('stimulus_path'),
-                       description.manifest.get_path('output_path'))
+    prepare_nwb_output(description.manifest.get_path('stimulus_path'))
+    #                   description.manifest.get_path('output_path'))
     # import pdb
     # pdb.set_trace()
         
@@ -80,12 +80,14 @@ def run(description, sweeps=None, procs=6):
         run_params = description.data['runs'][0]
         sweeps = run_params['sweeps']
 
-    lock = mp.Lock()
-    pool = mp.Pool(procs, initializer=_init_lock, initargs=(lock,))
-    pool.map(partial(run_sync, description), [[sweep] for sweep in sweeps])
-    pool.close()
-    pool.join()
-
+    #lock = mp.Lock()
+    #pool = mp.Pool(procs, initializer=_init_lock, initargs=(lock,))
+    #lesser = [sweeps[0],sweeps[-1]]
+    #pool.map(partial(run_sync, description), [[sweep] for sweep in lesser])
+    (vm,times) = run_sync(description,sweeps[0])
+    #pool.close()
+    #pool.join()
+    return (vm,times)
 
 def run_sync(description, sweeps=None):
     '''Single-process main function for simulating sweeps in a biophysical experiment.
@@ -100,6 +102,10 @@ def run_sync(description, sweeps=None):
 
     # configure NEURON
     utils = create_utils(description)
+    print(utils)
+    print(description)
+    import pdb
+    pdb.set_trace()
     h = utils.h
 
     # configure model
@@ -118,41 +124,49 @@ def run_sync(description, sweeps=None):
     run_params = description.data['runs'][0]
     if sweeps is None:
         sweeps = run_params['sweeps']
-    print(run_params.keys())    
+    #print(run_params.keys())    
     # sweeps_by_type = run_params['sweeps_by_type']
 
     output_path = manifest.get_path("output_path")
-
+    #import pdb
+    #pdb.set_trace()
     # run sweeps
-    for sweep in sweeps:
-        _runner_log.info("Loading sweep: %d" % (sweep))
-        utils.setup_iclamp(stimulus_path, sweep=sweep)
+    #lesser = [sweeps[0],sweeps[-1]]
+    #print(len(lesser))
+    
+    #for xi,sweep in enumerate(sweeps):
+    sweep = sweeps
+    #print('xi: ',xi)
+    _runner_log.info = print
+    _runner_log.info("Loading sweep: %d" % (sweep))
 
-        _runner_log.info("Simulating sweep: %d" % (sweep))
-        vec = utils.record_values()
-        tstart = time.time()
-        h.finitialize()
-        h.run()
-        tstop = time.time()
-        _runner_log.info("Time: %f" % (tstop - tstart))
+    utils.setup_iclamp(stimulus_path, sweep=sweep)
+    
+    _runner_log.info("Simulating sweep: %d" % (sweep))
+    vec = utils.record_values()
+    tstart = time.time()
+    h.finitialize()
+    h.run()
+    tstop = time.time()
+    _runner_log.info("Time: %f" % (tstop - tstart))
 
-        # write to an NWB File
-        _runner_log.info("Writing sweep: %d" % (sweep))
-        recorded_data = utils.get_recorded_data(vec)
+    # write to an NWB File
+    _runner_log.info("Writing sweep: %d" % (sweep))
+    print(sweep)
+    recorded_data = utils.get_recorded_data(vec)
+        
+    if _lock is not None:
+        _lock.acquire()
+    try:
+        save_nwb(output_path, recorded_data["v"], sweep, sweeps_by_type)
+    except:
+        save_nwb(output_path, recorded_data["v"], sweep)
+    print(output_path)
+    if _lock is not None:
+        _lock.release()
+    return (recorded_data["v"],recorded_data["t"])
 
-        if _lock is not None:
-            _lock.acquire()
-        try:
-            save_nwb(output_path, recorded_data["v"], sweep, sweeps_by_type)
-        except:
-            save_nwb(output_path, recorded_data["v"], sweep)
-
-        if _lock is not None:
-            _lock.release()
-
-
-def prepare_nwb_output(nwb_stimulus_path,
-                       nwb_result_path):
+def prepare_nwb_output(nwb_stimulus_path):
     '''Copy the stimulus file, zero out the recorded voltages and spike times.
 
     Parameters
@@ -162,17 +176,19 @@ def prepare_nwb_output(nwb_stimulus_path,
     nwb_result_path : string
         NWB file name
     '''
-
+    import os
+    nwb_result_path = os.getcwd()
     output_dir = os.path.dirname(nwb_result_path)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    copy(nwb_stimulus_path, nwb_result_path)
+    #copy(nwb_stimulus_path, nwb_result_path)
+    '''
     data_set = NwbDataSet(nwb_result_path)
     data_set.fill_sweep_responses(0.0, extend_experiment=True)
     for sweep in data_set.get_sweep_numbers():
         data_set.set_spike_times(sweep, [])
-
+    '''
 
 def save_nwb(output_path, v, sweep, sweep_by_type= None):
     '''Save a single voltage output result into an existing sweep in a NWB file.
@@ -223,9 +239,3 @@ def load_description(manifest_json_path):
 
     return description
 
-
-if '__main__' == __name__:
-    import sys
-
-    description = load_description(sys.argv[-1])
-    run(description)
